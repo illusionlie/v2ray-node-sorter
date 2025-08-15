@@ -1,16 +1,15 @@
-/* 全局与根元素变量 */
+/* 全局样式与变量 */
 :root {
-    --bg-color: #f8f9fa;
+    --bg-color: #f5f5f7;
     --panel-bg: #ffffff;
-    --text-color: #212529;
-    --border-color: #dee2e6;
-    --primary-color: #007aff;
-    --primary-hover: #0056b3;
-    --error-color: #dc3545;
-    --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --text-color: #1d1d1f;
+    --secondary-text: #6e6e73;
+    --border-color: #d2d2d7;
+    --accent-color: #007aff;
+    --error-color: #d93025;
+    --font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* 基础重置与样式 */
 body {
     font-family: var(--font-family);
     background-color: var(--bg-color);
@@ -18,8 +17,6 @@ body {
     margin: 0;
     padding: 20px;
     line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 /* Banner 样式 */
@@ -27,17 +24,20 @@ body {
     display: flex;
     align-items: center;
     gap: 15px;
+    margin-bottom: 20px;
     padding-bottom: 20px;
     border-bottom: 1px solid var(--border-color);
-    margin-bottom: 20px;
 }
 
-.logo {
+.banner-logo {
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    object-fit: cover;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    object-fit: contain;
+    background-color: var(--panel-bg);
+    border: 1px solid var(--border-color);
+    padding: 5px;
+    box-sizing: border-box;
 }
 
 .banner-title {
@@ -46,126 +46,114 @@ body {
     margin: 0;
 }
 
-/* 主内容区 */
-main {
+/* 主容器 */
+.container {
     max-width: 1200px;
     margin: 0 auto;
 }
 
 .main-title {
     text-align: center;
-    font-size: 2rem;
+    font-size: 28px;
     font-weight: 500;
+    color: var(--secondary-text);
     margin-bottom: 30px;
 }
 
-.container {
+/* 面板布局 */
+.panels {
     display: flex;
+    flex-direction: column;
     gap: 20px;
-    flex-direction: column; /* 移动端默认垂直排列 */
 }
 
 .panel {
-    background-color: var(--panel-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    flex: 1;
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-width: 0;
 }
 
-.panel h3 {
-    margin-top: 0;
+.panel-title {
+    font-size: 16px;
     font-weight: 500;
-    color: #495057;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 10px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    color: var(--secondary-text);
 }
 
-/* 左右面板特定样式 */
-.left-panel, .right-panel {
-    min-height: 400px;
-}
-
-#node-input {
-    flex-grow: 1;
+textarea, .output-list {
     width: 100%;
-    box-sizing: border-box;
+    height: 400px;
+    padding: 15px;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 10px;
-    font-family: "SF Mono", "Menlo", "Monaco", monospace;
-    font-size: 0.9rem;
+    border-radius: 12px;
+    background-color: var(--panel-bg);
+    font-size: 14px;
+    font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
     resize: vertical;
+    box-sizing: border-box;
 }
 
-#node-input:focus {
+textarea:focus, .output-list:focus {
     outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.25);
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
 }
 
-#remark-list {
+/* 输出列表样式 */
+.output-list {
     list-style-type: none;
-    padding: 0;
     margin: 0;
-    flex-grow: 1;
     overflow-y: auto;
 }
 
-#remark-list li {
-    padding: 12px 15px;
-    background-color: #f8f9fa;
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
+.output-list li {
+    padding: 8px 13px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
     margin-bottom: 8px;
     cursor: move;
     user-select: none;
+    border: 1px solid #e8e8e8;
+    /* 融合：为所有变换添加平滑过渡 */
     transition: all 0.2s ease-in-out;
 }
 
-#remark-list li:last-child {
+.output-list li:last-child {
     margin-bottom: 0;
 }
 
-#remark-list li.dragging {
-    opacity: 0.4;
-    background: #e9ecef;
+/* --- 融合：拖拽交互样式 --- */
+.output-list li.dragging {
+    opacity: 0.5;
+    background-color: #e0f0ff;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    transform: scale(1.02);
 }
 
-#remark-list li.drag-over-top {
-    border-top: 3px solid var(--primary-color);
-    /* 通过增加内边距来为边框腾出空间，防止内容跳动 */
-    padding-top: 9px; 
+.output-list li.drag-over-top {
+    border-top: 3px solid var(--accent-color);
+    padding-top: 5px;
 }
 
-#remark-list li.drag-over-bottom {
-    border-bottom: 3px solid var(--primary-color);
-    padding-bottom: 9px;
+.output-list li.drag-over-bottom {
+    border-bottom: 3px solid var(--accent-color);
+    padding-bottom: 5px;
 }
 
-
-/* 错误信息样式与动画 */
-#remark-list li.error {
-    /* 新的背景渐变和动画 */
+/* --- 融合：动态错误样式 --- */
+.output-list li.error {
+    /* 应用动态渐变背景 */
     background-size: 200% 100%;
-    background-image: linear-gradient(
-        90deg, 
-        #fff0f1, 
-        #fecdd3,
-        #fea1a7,
-        #ff8b92,
-        #fff0f1
-    );
+    background-image: linear-gradient(90deg, #fff0f1, #fecdd3, #fff0f1);
     animation: animated-gradient-bg 3s ease-in-out infinite;
+    border: 1px solid transparent; /* 隐藏原始边框，让背景动画更好看 */
 }
 
-#remark-list li.error span {
+.output-list li.error span {
     color: var(--error-color);
-    font-weight: bold;
+    font-weight: 500;
+    /* 应用文字闪烁动画 */
     animation: blink 1.1s infinite;
 }
 
@@ -176,43 +164,40 @@ main {
 }
 
 @keyframes animated-gradient-bg {
-    0% {
-        background-position: 100% 0;
-    }
-    100% {
-        background-position: -100% 0;
-    }
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
 }
 
 /* 按钮样式 */
-footer {
+.button-container {
     text-align: center;
     margin-top: 30px;
 }
 
 #sort-button {
-    background-color: var(--primary-color);
-    color: white;
-    border: none;
-    border-radius: 8px;
     padding: 12px 30px;
-    font-size: 1rem;
+    font-size: 16px;
     font-weight: 500;
+    color: #fff;
+    background-color: var(--accent-color);
+    border: none;
+    border-radius: 12px;
     cursor: pointer;
     transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
 #sort-button:hover {
-    background-color: var(--primary-hover);
+    background-color: #0071e3;
 }
 
 #sort-button:active {
     transform: scale(0.98);
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 桌面端 */
 @media (min-width: 768px) {
-    .container {
-        flex-direction: row; /* 在大屏幕上恢复左右布局 */
+    .panels {
+        flex-direction: row;
+        gap: 30px;
     }
 }

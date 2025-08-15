@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
     const nodeInput = document.getElementById('node-input');
-    const remarkList = document.getElementById('remark-list');
+    const remarkList = document.getElementById('node-output'); 
     const sortButton = document.getElementById('sort-button');
 
     let nodeData = [];
@@ -125,21 +125,17 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     };
     
-    // 事件监听
     nodeInput.addEventListener('input', processInput);
     sortButton.addEventListener('click', sortNodes);
 
     remarkList.addEventListener('dragstart', e => {
         draggedItem = e.target;
-        setTimeout(() => {
-            draggedItem.classList.add('dragging');
-        }, 0);
+        setTimeout(() => e.target.classList.add('dragging'), 0);
     });
 
     remarkList.addEventListener('dragend', e => {
         if (!draggedItem) return;
         draggedItem.classList.remove('dragging');
-        // 清理所有参考线样式
         document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
             el.classList.remove('drag-over-top', 'drag-over-bottom');
             el.style.paddingTop = '';
@@ -154,40 +150,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const afterElement = getDragAfterElement(remarkList, e.clientY);
         
-        // 清理旧的参考线
         document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
             el.classList.remove('drag-over-top', 'drag-over-bottom');
             el.style.paddingTop = '';
             el.style.paddingBottom = '';
         });
 
-        // 核心：实时移动 DOM 元素
+        // 实时移动 DOM 元素
         if (afterElement == null) {
             remarkList.appendChild(draggedItem);
             const lastElement = remarkList.lastChild.previousSibling;
             if(lastElement) {
                 lastElement.classList.add('drag-over-bottom');
-                lastElement.style.paddingBottom = '9px';
+                lastElement.style.paddingBottom = '5px';
             }
         } else {
             remarkList.insertBefore(draggedItem, afterElement);
             afterElement.classList.add('drag-over-top');
-            afterElement.style.paddingTop = '9px';
+            afterElement.style.paddingTop = '5px';
         }
     });
-
 
     remarkList.addEventListener('drop', e => {
         e.preventDefault();
         if (!draggedItem) return;
 
-        // 核心：根据最终的 DOM 顺序来同步数据
         const newOrderedIds = Array.from(remarkList.children).map(li => parseInt(li.dataset.id));
         
-        // 创建一个新的、排序后的数据数组
         nodeData = newOrderedIds.map(id => nodeData.find(item => item.id === id));
         
-        // 更新左侧文本框并重新渲染右侧列表以同步 data-* 属性
         updateInputFromData();
         render();
     });
@@ -205,6 +196,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
-    // 初始化
     processInput();
 });

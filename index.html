@@ -11,29 +11,27 @@
 <body>
 
     <header class="banner">
-        <img src="https://cdn.illusionlie.com/img/iL/ico/iL-circle.ico" alt="Logo" class="logo">
+        <img src="https://cdn.illusionlie.com/img/iL/ico/iL-circle.ico" alt="Logo" class="banner-logo">
         <h1 class="banner-title">V2Ray Node Sorter</h1>
     </header>
 
-    <main>
-        <h2 class="main-title">节点链接排序工具</h2>
-        <div class="container">
-            <div class="panel left-panel">
-                <h3>输入节点链接 (一行一个)</h3>
-                <textarea id="node-input" placeholder="请在此处粘贴 vmess:// 链接..."></textarea>
+    <main class="container">
+        <h2 class="main-title">V2Ray Share Link Sorter</h2>
+        <div class="panels">
+            <div class="panel">
+                <label for="node-input" class="panel-title">节点链接 (一行一个)</label>
+                <textarea id="node-input" spellcheck="false" placeholder="请在此处粘贴 vmess:// 链接..."></textarea>
             </div>
-            <div class="panel right-panel">
-                <h3>节点别名预览与排序</h3>
-                <ul id="remark-list">
-                    <!-- 别名列表将由 JavaScript 动态生成 -->
-                </ul>
+            <div class="panel">
+                <label class="panel-title">节点别名 (可拖拽排序)</label>
+                <ul id="node-output" class="output-list"></ul>
             </div>
+        </div>
+        <div class="button-container">
+            <button id="sort-button">自动排序</button>
         </div>
     </main>
 
-    <footer>
-        <button id="sort-button">自动排序</button>
-    </footer>
-
+    <script src="script.js"></script>
 </body>
 </html>
