@@ -58,6 +58,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const render = () => {
+        // 渲染时记录当前滚动位置
+        const scrollTop = remarkList.scrollTop;
         remarkList.innerHTML = '';
         nodeData.forEach(item => {
             const li = document.createElement('li');
@@ -74,6 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             remarkList.appendChild(li);
         });
+        // 恢复滚动位置，防止重绘时跳动
+        remarkList.scrollTop = scrollTop;
     };
     
     const updateInputFromData = () => {
@@ -133,42 +137,57 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     remarkList.addEventListener('dragend', e => {
+        if (!draggedItem) return;
         draggedItem.classList.remove('dragging');
+        // 清理所有参考线样式
+        document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+            el.classList.remove('drag-over-top', 'drag-over-bottom');
+            el.style.paddingTop = '';
+            el.style.paddingBottom = '';
+        });
         draggedItem = null;
     });
 
     remarkList.addEventListener('dragover', e => {
         e.preventDefault();
+        if (!draggedItem) return;
+
         const afterElement = getDragAfterElement(remarkList, e.clientY);
-        const currentDragging = document.querySelector('.dragging');
         
-        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-        
+        // 清理旧的参考线
+        document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+            el.classList.remove('drag-over-top', 'drag-over-bottom');
+            el.style.paddingTop = '';
+            el.style.paddingBottom = '';
+        });
+
+        // 核心：实时移动 DOM 元素
         if (afterElement == null) {
-            // Do nothing, handled by drop logic
+            remarkList.appendChild(draggedItem);
+            const lastElement = remarkList.lastChild.previousSibling;
+            if(lastElement) {
+                lastElement.classList.add('drag-over-bottom');
+                lastElement.style.paddingBottom = '9px';
+            }
         } else {
-            afterElement.classList.add('drag-over');
+            remarkList.insertBefore(draggedItem, afterElement);
+            afterElement.classList.add('drag-over-top');
+            afterElement.style.paddingTop = '9px';
         }
     });
 
+
     remarkList.addEventListener('drop', e => {
         e.preventDefault();
-        document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-        
-        const draggedId = parseInt(draggedItem.dataset.id);
-        const fromIndex = nodeData.findIndex(item => item.id === draggedId);
+        if (!draggedItem) return;
 
-        const afterElement = getDragAfterElement(remarkList, e.clientY);
+        // 核心：根据最终的 DOM 顺序来同步数据
+        const newOrderedIds = Array.from(remarkList.children).map(li => parseInt(li.dataset.id));
         
-        const toId = afterElement ? parseInt(afterElement.dataset.id) : null;
-        const toIndex = toId === null ? nodeData.length : nodeData.findIndex(item => item.id === toId);
-
-        const [movedItem] = nodeData.splice(fromIndex, 1);
+        // 创建一个新的、排序后的数据数组
+        nodeData = newOrderedIds.map(id => nodeData.find(item => item.id === id));
         
-        // Correct index if moving downwards
-        const finalToIndex = fromIndex < toIndex ? toIndex -1 : toIndex;
-        nodeData.splice(finalToIndex, 0, movedItem);
-
+        // 更新左侧文本框并重新渲染右侧列表以同步 data-* 属性
         updateInputFromData();
         render();
     });

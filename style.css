@@ -41,8 +41,8 @@ body {
 }
 
 .banner-title {
-    font-size: 1.8rem;
-    font-weight: 600;
+    font-size: 24px;
+    font-weight: 700;
     margin: 0;
 }
 
@@ -124,7 +124,7 @@ main {
     margin-bottom: 8px;
     cursor: move;
     user-select: none;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.2s ease-in-out;
 }
 
 #remark-list li:last-child {
@@ -136,8 +136,15 @@ main {
     background: #e9ecef;
 }
 
-#remark-list li.drag-over {
-    border-top: 2px solid var(--primary-color);
+#remark-list li.drag-over-top {
+    border-top: 3px solid var(--primary-color);
+    /* 通过增加内边距来为边框腾出空间，防止内容跳动 */
+    padding-top: 9px; 
+}
+
+#remark-list li.drag-over-bottom {
+    border-bottom: 3px solid var(--primary-color);
+    padding-bottom: 9px;
 }
 
 
