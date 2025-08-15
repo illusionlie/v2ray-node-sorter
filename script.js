@@ -127,7 +127,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     remarkList.addEventListener('dragstart', e => {
         draggedItem = e.target;
-        setTimeout(() => e.target.classList.add('dragging'), 0);
+        setTimeout(() => {
+            draggedItem.classList.add('dragging');
+        }, 0);
     });
 
     remarkList.addEventListener('dragend', e => {
