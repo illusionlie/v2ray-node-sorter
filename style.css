@@ -163,6 +163,32 @@ textarea:focus, .output-list:focus {
     animation: blink 1.2s infinite;
 }
 
+/* 规则节点 (绿色) 样式 */
+.output-list li.status-ruled {
+    border-left: 4px solid #34c759; /* 绿色指示条 */
+    position: relative;
+    overflow: hidden; /* 用于微光效果 */
+}
+
+/* 规则节点的微光效果 */
+.output-list li.status-ruled::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    animation: sheen-effect 3s infinite;
+    animation-delay: 0.5s; /* 错开动画，避免所有项同步闪烁 */
+}
+
+/* 非规则但有效节点 (蓝色) 样式 */
+.output-list li.status-unruled {
+    border-left: 4px solid var(--accent-color); /* 蓝色指示条 */
+    animation: breathing-border 2.5s infinite ease-in-out;
+}
+
 @keyframes blink {
     0% { opacity: 1; }
     50% { opacity: 0.3; }
@@ -172,6 +198,30 @@ textarea:focus, .output-list:focus {
 @keyframes animated-gradient-bg {
     0% { background-position: 100% 0; }
     100% { background-position: -100% 0; }
+}
+
+@keyframes sheen-effect {
+    0% {
+        left: -100%;
+    }
+    50% {
+        left: 100%;
+    }
+    100% {
+        left: 100%;
+    }
+}
+
+@keyframes breathing-border {
+    0% {
+        border-left-color: rgba(0, 122, 255, 0.5);
+    }
+    50% {
+        border-left-color: rgba(0, 122, 255, 1);
+    }
+    100% {
+        border-left-color: rgba(0, 122, 255, 0.5);
+    }
 }
 
 /* 按钮样式 */

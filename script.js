@@ -8,57 +8,103 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const REMARK_REGEX = /^([^-]+)-([^-]+)-(Tier\d+)(?:-sid:([^-]+))?(?:-sn:(\d+))?(?:-flag:([A-Z]))?$/;
 
+        const parseLinkForRemark = (link) => {
+        try {
+            const protocol = link.split('://')[0];
+            switch (protocol) {
+                case 'vmess': // Base64 JSON
+                    const binaryString = atob(link.substring(8));
+                    const utf8Bytes = Uint8Array.from(binaryString, char => char.charCodeAt(0));
+                    const decodedStr = new TextDecoder().decode(utf8Bytes);
+                    const config = JSON.parse(decodedStr);
+                    return { remark: config.ps || config.remark, error: null };
+                case 'vless':
+                case 'trojan': // URL-based with fragment
+                case 'ss':
+                    const hashIndex = link.indexOf('#');
+                    if (hashIndex !== -1) {
+                        return { remark: decodeURIComponent(link.substring(hashIndex + 1)), error: null };
+                    }
+                    // Handle ss://BASE64 without remark
+                    if (protocol === 'ss' && hashIndex === -1) {
+                        try {
+                           atob(link.substring(5)); // check if it's valid base64
+                           return { remark: 'Shadowsocks Node', error: null }; // Default remark
+                        } catch(e) { /* fall through to error */ }
+                    }
+                    return { remark: null, error: '无法提取别名' };
+                case 'ssr': // Base64 URL-like
+                    const decodedSsr = atob(link.substring(6));
+                    const params = new URLSearchParams(decodedSsr.split('/?')[1]);
+                    if (params.has('remarks')) {
+                        return { remark: atob(params.get('remarks')), error: null };
+                    }
+                    return { remark: null, error: '无法提取别名' };
+                default:
+                    return { remark: null, error: '不支持的链接协议' };
+            }
+        } catch (e) {
+            return { remark: null, error: '链接解码失败' };
+        }
+    };
+
     const processInput = () => {
         const links = nodeInput.value.split('\n').filter(line => line.trim() !== '');
         
         nodeData = links.map((link, index) => {
-            const data = {
+            const node = {
                 id: index,
                 originalLink: link,
                 remark: null,
-                isValid: false,
+                status: 'INVALID',
                 error: null,
                 parsed: null,
             };
 
-            try {
-                if (!link.startsWith('vmess://')) {
-                    throw new Error('无效的 vmess:// 协议');
-                }
-                const base64Str = link.substring(8);
-                const decodedStr = atob(base64Str);
-                const config = JSON.parse(decodedStr);
-                data.remark = config.ps || config.remark || '无别名';
+            const parsedLink = parseLinkForRemark(link);
 
-                const match = data.remark.match(REMARK_REGEX);
-                if (match) {
-                    data.isValid = true;
-                    data.parsed = {
-                        country: match[1],
-                        region: match[2],
-                        tier: parseInt(match[3].replace('Tier', ''), 10),
-                        sid: match[4] || null,
-                        sn: match[5] ? parseInt(match[5], 10) : null,
-                        flag: match[6] || null,
-                    };
-                    if(data.parsed.sid === null && data.parsed.sn !== null) {
-                         throw new Error('别名规则错误: 有sn时必须有sid');
-                    }
-                } else {
-                    throw new Error('别名不符合命名规则');
-                }
-            } catch (e) {
-                data.isValid = false;
-                data.error = e.message;
+            if (parsedLink.error) {
+                node.error = parsedLink.error;
+                return node;
             }
-            return data;
+            
+            if (!parsedLink.remark) {
+                node.error = '无法提取别名';
+                return node;
+            }
+
+            node.remark = parsedLink.remark;
+
+            const match = node.remark.match(REMARK_REGEX);
+            if (match) {
+                // 符合命名规则
+                const parsed = {
+                    country: match[1],
+                    region: match[2],
+                    tier: parseInt(match[3].replace('Tier', ''), 10),
+                    sid: match[4] || null,
+                    sn: match[5] ? parseInt(match[5], 10) : null,
+                    flag: match[6] || null,
+                };
+
+                if (parsed.sid === null && parsed.sn !== null) {
+                    node.error = '别名规则冲突: 有sn时必须有sid';
+                    // 状态依然是 INVALID
+                } else {
+                    node.status = 'VALID_RULED';
+                    node.parsed = parsed;
+                }
+            } else {
+                // 链接有效，但不符合命名规则
+                node.status = 'VALID_UNRULED';
+            }
+            return node;
         });
         
         render();
     };
 
     const render = () => {
-        // 渲染时记录当前滚动位置
         const scrollTop = remarkList.scrollTop;
         remarkList.innerHTML = '';
         nodeData.forEach(item => {
@@ -66,17 +112,24 @@ document.addEventListener('DOMContentLoaded', () => {
             li.dataset.id = item.id;
             li.draggable = true;
 
-            if (item.isValid) {
-                li.textContent = item.remark;
-            } else {
-                li.classList.add('error');
-                const span = document.createElement('span');
-                span.textContent = `[错误] ${item.error} - (${item.originalLink.slice(0, 20)}...)`;
-                li.appendChild(span);
+            switch (item.status) {
+                case 'VALID_RULED':
+                    li.classList.add('status-ruled');
+                    li.textContent = item.remark;
+                    break;
+                case 'VALID_UNRULED':
+                    li.classList.add('status-unruled');
+                    li.textContent = item.remark;
+                    break;
+                case 'INVALID':
+                    li.classList.add('error');
+                    const span = document.createElement('span');
+                    span.textContent = `[错误] ${item.error} - (${item.originalLink.slice(0, 20)}...)`;
+                    li.appendChild(span);
+                    break;
             }
             remarkList.appendChild(li);
         });
-        // 恢复滚动位置，防止重绘时跳动
         remarkList.scrollTop = scrollTop;
     };
     
@@ -85,42 +138,45 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const sortNodes = () => {
+        // 定义状态的排序优先级
+        const statusPriority = {
+            'VALID_RULED': 1,
+            'VALID_UNRULED': 2,
+            'INVALID': 3
+        };
+
         nodeData.sort((a, b) => {
-            // 无效节点排在最后
-            if (a.isValid && !b.isValid) return -1;
-            if (!a.isValid && b.isValid) return 1;
-            if (!a.isValid && !b.isValid) return 0;
+            // 首先按状态排序
+            const statusDiff = statusPriority[a.status] - statusPriority[b.status];
+            if (statusDiff !== 0) return statusDiff;
 
-            const pa = a.parsed;
-            const pb = b.parsed;
+            // 如果都是规则节点，则按详细规则排序
+            if (a.status === 'VALID_RULED' && b.status === 'VALID_RULED') {
+                const pa = a.parsed;
+                const pb = b.parsed;
+                const aFlag = pa.flag === 'D' ? 1 : 0;
+                const bFlag = pb.flag === 'D' ? 1 : 0;
+                if (aFlag !== bFlag) return bFlag - aFlag;
+                const aSn = pa.sn === null ? Infinity : pa.sn;
+                const bSn = pb.sn === null ? Infinity : pb.sn;
+                if (aSn !== bSn) return aSn - bSn;
+                const aSid = pa.sid || '';
+                const bSid = pb.sid || '';
+                const sidCompare = aSid.localeCompare(bSid);
+                if (sidCompare !== 0) return sidCompare;
+                if (pa.tier !== pb.tier) return pa.tier - pb.tier;
+                const regionCompare = pa.region.localeCompare(pb.region);
+                if (regionCompare !== 0) return regionCompare;
+                return pa.country.localeCompare(pb.country);
+            }
 
-            // 1. 特殊标志 (flag:D 优先级最高)
-            const aFlag = pa.flag === 'D' ? 1 : 0;
-            const bFlag = pb.flag === 'D' ? 1 : 0;
-            if (aFlag !== bFlag) return bFlag - aFlag;
+            // 对于非规则节点或错误节点，保持它们之间的原始相对顺序（或按别名排序）
+            if (a.remark && b.remark) {
+                return a.remark.localeCompare(b.remark);
+            }
 
-            // 2. 系列序号 (sn) - 小的在前
-            const aSn = pa.sn === null ? Infinity : pa.sn;
-            const bSn = pb.sn === null ? Infinity : pb.sn;
-            if (aSn !== bSn) return aSn - bSn;
-
-            // 3. 系列标识符 (sid) - 字母序
-            const aSid = pa.sid || '';
-            const bSid = pb.sid || '';
-            const sidCompare = aSid.localeCompare(bSid);
-            if (sidCompare !== 0) return sidCompare;
-
-            // 4. Tier等级 - 小的在前
-            if (pa.tier !== pb.tier) return pa.tier - pb.tier;
-            
-            // 5. 地区 - 字母序
-            const regionCompare = pa.region.localeCompare(pb.region);
-            if (regionCompare !== 0) return regionCompare;
-
-            // 6. 国家 - 字母序
-            return pa.country.localeCompare(pb.country);
+            return 0;
         });
-
         updateInputFromData();
         render();
     };
