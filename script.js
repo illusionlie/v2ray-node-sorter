@@ -271,5 +271,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }, { offset: Number.NEGATIVE_INFINITY }).element;
     }
 
+    // 模态框交互逻辑
+    const showRulesBtn = document.getElementById('show-rules-btn');
+    const rulesModal = document.getElementById('rules-modal');
+    const modalCloseBtn = document.getElementById('modal-close-btn');
+
+    const openModal = () => {
+        rulesModal.classList.remove('hidden');
+        modalCloseBtn.focus(); // 增强可访问性，将焦点移入模态框
+    };
+
+    const closeModal = () => {
+        rulesModal.classList.add('hidden');
+        showRulesBtn.focus(); // 增强可访问性，将焦点移回触发按钮
+    };
+
+    showRulesBtn.addEventListener('click', openModal);
+    modalCloseBtn.addEventListener('click', closeModal);
+
+    // 点击遮罩层关闭模态框
+    rulesModal.addEventListener('click', (e) => {
+        if (e.target === rulesModal) {
+            closeModal();
+        }
+    });
+
+    // 按下 Escape 键关闭模态框
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !rulesModal.classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+
     processInput();
 });

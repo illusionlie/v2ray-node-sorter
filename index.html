@@ -29,8 +29,47 @@
         </div>
         <div class="button-container">
             <button id="sort-button">自动排序</button>
+            <!-- 新增：规则说明按钮 -->
+            <button id="show-rules-btn" class="info-button" aria-label="显示命名规则">?</button>
         </div>
     </main>
+
+    <!-- 新增：命名规则模态框 -->
+    <div id="rules-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <button id="modal-close-btn" class="modal-close-btn" aria-label="关闭">&times;</button>
+            <h2 id="modal-title" class="modal-title">命名规则与排序优先级</h2>
+            
+            <div class="modal-body">
+                <h4>命名规则格式</h4>
+                <p>一个有效的别名应遵循以下结构，字段间用 <code>-</code> 分隔：</p>
+                <code class="code-block">国家-地区-Tier等级-sid:系列-sn:序号-flag:标志</code>
+                
+                <ul>
+                    <li><strong>国家 (必填):</strong> 两位或以上大写字母国家代码。例: <code>US</code></li>
+                    <li><strong>地区 (必填):</strong> 节点所在地区。例: <code>洛杉矶</code></li>
+                    <li><strong>Tier等级 (必填):</strong> 以 "Tier" 开头后跟数字。例: <code>Tier0</code></li>
+                    <li><strong>sid (可选):</strong> 系列标识符，以 <code>sid:</code> 开头。例: <code>sid:Tester</code></li>
+                    <li><strong>sn (可选):</strong> 系列序号，以 <code>sn:</code> 开头。<strong>必须在有 `sid` 时才能使用。</strong>例: <code>sn:1</code></li>
+                    <li><strong>flag (可选):</strong> 特殊标志，以 <code>flag:</code> 开头。目前仅支持 <code>D</code>。例: <code>flag:D</code></li>
+                </ul>
+
+                <h4>一个有效的例子</h4>
+                <code class="code-block">US-洛杉矶-Tier0-sid:测试节点-sn:1-flag:D</code>
+
+                <h4>排序优先级</h4>
+                <p>自动排序将按以下优先级进行（由高到低）：</p>
+                <ol>
+                    <li><strong>特殊标志 (flag)</strong>: <code>flag:D</code> 的节点永远最前。</li>
+                    <li><strong>系列标识符 (sid)</strong>: 按字母顺序分组。</li>
+                    <li><strong>系列序号 (sn)</strong>: 在同一 `sid` 组内，按数字从小到大排序。</li>
+                    <li><strong>Tier等级</strong>: 数字越小越优先。</li>
+                    <li><strong>地区</strong>: 按字母顺序排序。</li>
+                    <li><strong>国家</strong>: 按字母顺序排序。</li>
+                </ol>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>
