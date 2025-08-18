@@ -154,23 +154,42 @@ document.addEventListener('DOMContentLoaded', () => {
             if (a.status === 'VALID_RULED' && b.status === 'VALID_RULED') {
                 const pa = a.parsed;
                 const pb = b.parsed;
+
+                // 排序优先级: flag > sid > sn > Tier > region > country
+
+                // 1. 特殊标志 (flag:D 优先)
                 const aFlag = pa.flag === 'D' ? 1 : 0;
                 const bFlag = pb.flag === 'D' ? 1 : 0;
                 if (aFlag !== bFlag) return bFlag - aFlag;
+
+                // 2. 系列标识符 (sid) - 字母序
+                // 有 sid 的节点优先于没有 sid 的节点
+                if (pa.sid && !pb.sid) return -1;
+                if (!pa.sid && pb.sid) return 1;
+                if (pa.sid && pb.sid) {
+                    const sidCompare = pa.sid.localeCompare(pb.sid);
+                    if (sidCompare !== 0) return sidCompare;
+                }
+                // 如果 sid 相同 (或都为 null), 则继续比较 sn
+
+                // 3. 系列序号 (sn) - 数字越小越优先
+                // 在同一个 sid 组内，按 sn 排序
                 const aSn = pa.sn === null ? Infinity : pa.sn;
                 const bSn = pb.sn === null ? Infinity : pb.sn;
                 if (aSn !== bSn) return aSn - bSn;
-                const aSid = pa.sid || '';
-                const bSid = pb.sid || '';
-                const sidCompare = aSid.localeCompare(bSid);
-                if (sidCompare !== 0) return sidCompare;
+                
+                // 4. Tier等级 (数字越小越优先)
                 if (pa.tier !== pb.tier) return pa.tier - pb.tier;
+
+                // 5. 地区 (字母序)
                 const regionCompare = pa.region.localeCompare(pb.region);
                 if (regionCompare !== 0) return regionCompare;
+
+                // 6. 国家 (字母序)
                 return pa.country.localeCompare(pb.country);
             }
 
-            // 对于非规则节点或错误节点，保持它们之间的原始相对顺序（或按别名排序）
+            // 对于非规则节点或错误节点，按别名排序
             if (a.remark && b.remark) {
                 return a.remark.localeCompare(b.remark);
             }
