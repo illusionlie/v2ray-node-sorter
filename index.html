@@ -20,7 +20,7 @@
         <div class="panels">
             <div class="panel">
                 <label for="node-input" class="panel-title">节点链接 (一行一个)</label>
-                <textarea id="node-input" spellcheck="false" placeholder="请在此处粘贴 vmess:// 链接..."></textarea>
+                <textarea id="node-input" spellcheck="false" placeholder="请在此处粘贴节点链接(eg: vmess://... vless//...)"></textarea>
             </div>
             <div class="panel">
                 <label class="panel-title">节点别名 (可拖拽排序)</label>
@@ -29,12 +29,12 @@
         </div>
         <div class="button-container">
             <button id="sort-button">自动排序</button>
-            <!-- 新增：规则说明按钮 -->
+            <!-- 规则说明按钮 -->
             <button id="show-rules-btn" class="info-button" aria-label="显示命名规则">?</button>
         </div>
     </main>
 
-    <!-- 新增：命名规则模态框 -->
+    <!-- 命名规则模态框 -->
     <div id="rules-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-content">
             <button id="modal-close-btn" class="modal-close-btn" aria-label="关闭">&times;</button>
